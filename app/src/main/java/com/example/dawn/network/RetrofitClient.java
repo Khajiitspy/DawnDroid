@@ -41,4 +41,8 @@ public class RetrofitClient {
     public TaskApi getTaskApi() {
         return retrofit.create(TaskApi.class);
     }
+
+    public UserApi getUserApi() {
+        return retrofit.create(UserApi.class);
+    }
 }

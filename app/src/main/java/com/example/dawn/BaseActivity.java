@@ -24,6 +24,11 @@ public class BaseActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int select = item.getItemId();
 
+        if(select == R.id.m_register) {
+            goToRegisterActivity();
+            return true;
+        }
+
         if(select == R.id.m_create) {
             goToAddTaskActivity();
             return true;
@@ -47,5 +52,8 @@ public class BaseActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-
+    protected void goToRegisterActivity() {
+        Intent intent = new Intent(BaseActivity.this, RegisterActivity.class);
+        startActivity(intent);
+    }
 }

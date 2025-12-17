@@ -19,7 +19,7 @@ public interface TaskApi {
     @GET("api/tasks")
     public Call<List<TaskItemDTO>> list();
     @Multipart
-    @POST("api/tasks")
+    @POST("api/tasks"2)
     Call<TaskItemDTO> create(
             @Part("Name") RequestBody name,
             @Part MultipartBody.Part image
