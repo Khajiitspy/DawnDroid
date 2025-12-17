@@ -1,6 +1,5 @@
 package com.example.dawn;
 
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -13,15 +12,12 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.dawn.config.Config;
 import com.example.dawn.dto.Task.TaskItemDTO;
 import com.example.dawn.network.RetrofitClient;
-import com.example.dawn.utils.FileUtil;
-import com.example.dawn.utils.UriRequestBody;
 
 import java.io.File;
 
@@ -44,10 +40,7 @@ public class AddTaskActivity extends BaseActivity {
                     uri -> {
                         if (uri != null) {
                             selectedImageUri = uri;
-
-                            Glide.with(this)
-                                 .load(uri)
-                                 .into(imagePreview);
+                            imagePreview.setImageURI(uri);
                         }
                     }
             );
@@ -92,25 +85,25 @@ public class AddTaskActivity extends BaseActivity {
         RequestBody titlePart =
                 RequestBody.create(title, MultipartBody.FORM);
 
-        RequestBody imageBody =
-                new UriRequestBody(this, imageUri, mimeType);
+//        RequestBody imageBody =
+//                new UriRequestBody(this, imageUri, mimeType);
 
-        MultipartBody.Part imagePart =
-                MultipartBody.Part.createFormData(
-                        "Image",
-                        FileUtil.getFileName(this, imageUri),
-                        imageBody
-                );
+//        MultipartBody.Part imagePart =
+//                MultipartBody.Part.createFormData(
+//                        "Image",
+//                        FileUtil.getFileName(this, imageUri),
+//                        imageBody
+//                );
 
-//        MultipartBody.Part imagePart = null;
-//        if(imageUri != null) {
-//            String imagePath = getImagePath(imageUri);
-//            if (imagePath != null) {
-//                File file = new File(imagePath);
-//                RequestBody requestBody = ReuestBody.create(MediaType.parse("multipart/form-data"), file);
-//                imagePart = MultipartBody.Part.createFormData("Image", file.getName(), requestBody);
-//            }
-//        }
+        MultipartBody.Part imagePart = null;
+        if(imageUri != null) {
+            String imagePath = getImagePath(imageUri);
+            if (imagePath != null) {
+                File file = new File(imagePath);
+                RequestBody requestBody = RequestBody.create(MediaType.parse("multipart/form-data"), file);
+                imagePart = MultipartBody.Part.createFormData("image", file.getName(), requestBody);
+            }
+        }
 
         RetrofitClient.getInstance()
                 .getTaskApi()
