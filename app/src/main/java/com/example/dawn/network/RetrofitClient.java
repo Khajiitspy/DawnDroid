@@ -45,4 +45,9 @@ public class RetrofitClient {
     public UserApi getUserApi() {
         return retrofit.create(UserApi.class);
     }
+
+    public AuthApi getAuthApi() {
+        return retrofit.create(AuthApi.class);
+    }
+
 }

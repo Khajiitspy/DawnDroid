@@ -1,4 +1,4 @@
-package com.example.dawn;
+package com.example.dawn.screens;
 
 import android.net.Uri;
 import android.os.Bundle;
@@ -12,7 +12,8 @@ import androidx.activity.result.contract.ActivityResultContracts;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
-import com.example.dawn.application.HomeApplication;
+import com.example.dawn.BaseActivity;
+import com.example.dawn.R;
 import com.example.dawn.config.Config;
 import com.example.dawn.network.RetrofitClient;
 import com.example.dawn.utils.FileUtil;

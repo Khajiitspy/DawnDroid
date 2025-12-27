@@ -6,6 +6,9 @@ import android.view.MenuItem;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.dawn.screens.AddTaskActivity;
+import com.example.dawn.screens.MainActivity;
+import com.example.dawn.screens.RegisterActivity;
 import com.example.dawn.utils.CommonUtils;
 
 public class BaseActivity extends AppCompatActivity {
@@ -23,11 +26,6 @@ public class BaseActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int select = item.getItemId();
-
-        if(select == R.id.m_register) {
-            goToRegisterActivity();
-            return true;
-        }
 
         if(select == R.id.m_create) {
             goToAddTaskActivity();
@@ -52,7 +50,7 @@ public class BaseActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    protected void goToRegisterActivity() {
+    protected void goToRegistration() {
         Intent intent = new Intent(BaseActivity.this, RegisterActivity.class);
         startActivity(intent);
     }

@@ -1,7 +1,4 @@
-package com.example.dawn;
-
-import static com.example.dawn.utils.FileUtil.getImagePath;
-import static com.example.dawn.utils.MyLogger.toast;
+package com.example.dawn.screens;
 
 import android.database.Cursor;
 import android.net.Uri;
@@ -11,22 +8,18 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.example.dawn.BaseActivity;
+import com.example.dawn.R;
 import com.example.dawn.config.Config;
-import com.example.dawn.dto.Account.UserItemDTO;
+import com.example.dawn.dto.Task.TaskItemDTO;
 import com.example.dawn.network.RetrofitClient;
-import com.example.dawn.utils.FileUtil;
-import com.example.dawn.utils.MyLogger;
 
 import java.io.File;
 
@@ -37,19 +30,19 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class RegisterActivity extends BaseActivity {
+public class AddTaskActivity extends BaseActivity {
 
-    private Uri avatarUri;
-    private ImageView avatarPreview;
-    private EditText emailInput, usernameInput, passwordInput;
+    private EditText titleInput;
+    private ImageView imagePreview;
+    private Uri selectedImageUri;
 
     private final ActivityResultLauncher<String> imagePicker =
             registerForActivityResult(
                     new ActivityResultContracts.GetContent(),
                     uri -> {
                         if (uri != null) {
-                            avatarUri = uri;
-                            avatarPreview.setImageURI(uri); // preview/edit
+                            selectedImageUri = uri;
+                            imagePreview.setImageURI(uri);
                         }
                     }
             );
@@ -57,74 +50,77 @@ public class RegisterActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_register);
+        setContentView(R.layout.activity_add_task);
 
-        avatarPreview = findViewById(R.id.avatarPreview);
-        emailInput = findViewById(R.id.emailInput);
-        usernameInput = findViewById(R.id.usernameInput);
-        passwordInput = findViewById(R.id.passwordInput);
+        titleInput = findViewById(R.id.taskTitleInput);
+        imagePreview = findViewById(R.id.taskImagePreview);
 
-        findViewById(R.id.chooseAvatarButton)
+        findViewById(R.id.chooseImageButton)
                 .setOnClickListener(v -> imagePicker.launch("image/*"));
 
+        String url = Config.IMAGES_URL+"default.jpg";
+        Glide.with(this)
+                .load(url)
+                .apply(new RequestOptions().override(300))
+                .into(imagePreview);
     }
 
-    public void onRegisterClick(View view) {
+    public void onSaveClick(View view) {
+        String title = titleInput.getText().toString().trim();
 
-        String email = emailInput.getText().toString().trim();
-        String username = usernameInput.getText().toString().trim();
-        String password = passwordInput.getText().toString().trim();
-
-        if (email.isEmpty() || username.isEmpty() || password.isEmpty()) {
-            toast("Заповніть усі поля");
+        if (title.isEmpty()) {
+            toast("Введіть назву задачі");
             return;
         }
-
-        if (avatarUri == null) {
+        if (selectedImageUri == null) {
             toast("Додайте зображення");
             return;
         }
 
-        register(email, username, password, avatarUri);
+        uploadTask(title, selectedImageUri);
     }
 
-
-    private void register(String email, String username, String password, Uri imageUri){
+    private void uploadTask(String title, Uri imageUri) {
         String mimeType = getContentResolver().getType(imageUri);
         if (mimeType == null) mimeType = "image/jpeg";
 
-        RequestBody emailPart =
-                RequestBody.create(emailInput.getText().toString(), MultipartBody.FORM);
-        RequestBody usernamePart =
-                RequestBody.create(usernameInput.getText().toString(), MultipartBody.FORM);
-        RequestBody passwordPart =
-                RequestBody.create(passwordInput.getText().toString(), MultipartBody.FORM);
+        RequestBody titlePart =
+                RequestBody.create(title, MultipartBody.FORM);
 
-        MultipartBody.Part avatarPart = null;
+//        RequestBody imageBody =
+//                new UriRequestBody(this, imageUri, mimeType);
+
+//        MultipartBody.Part imagePart =
+//                MultipartBody.Part.createFormData(
+//                        "Image",
+//                        FileUtil.getFileName(this, imageUri),
+//                        imageBody
+//                );
+
+        MultipartBody.Part imagePart = null;
         if(imageUri != null) {
             String imagePath = getImagePath(imageUri);
             if (imagePath != null) {
                 File file = new File(imagePath);
                 RequestBody requestBody = RequestBody.create(MediaType.parse("multipart/form-data"), file);
-                avatarPart = MultipartBody.Part.createFormData("avatar", file.getName(), requestBody);
+                imagePart = MultipartBody.Part.createFormData("image", file.getName(), requestBody);
             }
         }
 
-
         RetrofitClient.getInstance()
-                .getUserApi()
-                .register(emailPart, usernamePart, passwordPart, avatarPart)
-                .enqueue(new Callback<UserItemDTO>() {
+                .getTaskApi()
+                .create(titlePart, imagePart)
+                .enqueue(new Callback<TaskItemDTO>() {
                     @Override
-                    public void onResponse(Call<UserItemDTO> call, Response<UserItemDTO> response) {
+                    public void onResponse(Call<TaskItemDTO> call, Response<TaskItemDTO> response) {
                         if (response.isSuccessful() && response.body() != null) {
-                            toast("User створена");
+                            toast("Задача створена");
                             //setResult(RESULT_OK);
 //                            finish();
                             goToMainActivity();
                         } else if (response.isSuccessful() && response.body() == null) {
-                            Log.d("RegisterActivity", "Response successful but body is null. Code: " + response.code());
-                            toast("User створена");
+                            Log.d("AddTaskActivity", "Response successful but body is null. Code: " + response.code());
+                            toast("Задача створена");
                             //setResult(RESULT_OK);
 //                            finish();
                             goToMainActivity();
@@ -137,19 +133,21 @@ public class RegisterActivity extends BaseActivity {
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
-                            Log.e("RegisterActivity", "Server error: " + response.code() + ", body: " + errorBody);
+                            Log.e("AddTaskActivity", "Server error: " + response.code() + ", body: " + errorBody);
                             toast("Помилка сервера: " + response.code());
                         }
                     }
 
                     @Override
-                    public void onFailure(Call<UserItemDTO> call, Throwable t) {
-                        Log.e("RegisterActivity", "onFailure type: " + t.getClass().getName());
-                        Log.e("RegisterActivity", "message: " + t.getMessage(), t);
+                    public void onFailure(Call<TaskItemDTO> call, Throwable t) {
+                        Log.e("AddTaskActivity", "onFailure type: " + t.getClass().getName());
+                        Log.e("AddTaskActivity", "message: " + t.getMessage(), t);
                         toast("Помилка: " + t.getMessage());
                     }
                 });
     }
+
+
     private String getImagePath(Uri uri) {
         String[] projection = {MediaStore.Images.Media.DATA};
         Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
@@ -163,5 +161,8 @@ public class RegisterActivity extends BaseActivity {
         }
 
         return null;
+    }
+    private void toast(String text) {
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
     }
 }

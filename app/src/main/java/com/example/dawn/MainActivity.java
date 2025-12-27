@@ -1,4 +1,4 @@
-package com.example.dawn;
+package com.example.dawn.screens;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,10 +10,12 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.dawn.BaseActivity;
+import com.example.dawn.R;
+import com.example.dawn.TaskAdapter;
 import com.example.dawn.dto.Task.TaskItemDTO;
 import com.example.dawn.network.RetrofitClient;
 import com.example.dawn.utils.CommonUtils;
-import com.example.dawn.utils.MyLogger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +28,7 @@ public class MainActivity extends BaseActivity {
 
     RecyclerView taskRecycler;
     TaskAdapter adapter;
-
+    View accountButton;
     View addButton;
 
     @Override
@@ -49,6 +51,9 @@ public class MainActivity extends BaseActivity {
 
         addButton = findViewById(R.id.addButton);
 
+        accountButton = findViewById(R.id.accountButton);
+        accountButton.setOnClickListener(v -> goToRegistration());
+
         addButton.setOnClickListener(v ->
                 {
                     goToAddTaskActivity();
@@ -62,21 +67,21 @@ public class MainActivity extends BaseActivity {
     private void loadTaskList() {
         RetrofitClient.getInstance().getTaskApi().list()
                 .enqueue(new Callback<List<TaskItemDTO>>() {
-            @Override
-            public void onResponse(Call<List<TaskItemDTO>> call, Response<List<TaskItemDTO>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    adapter = new TaskAdapter(response.body(),
-                            MainActivity.this::onClickEditTask);
-                    taskRecycler.setAdapter(adapter);
-                    CommonUtils.hideLoading();
-                }
-            }
+                    @Override
+                    public void onResponse(Call<List<TaskItemDTO>> call, Response<List<TaskItemDTO>> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            adapter = new TaskAdapter(response.body(),
+                                    MainActivity.this::onClickEditTask);
+                            taskRecycler.setAdapter(adapter);
+                            CommonUtils.hideLoading();
+                        }
+                    }
 
-            @Override
-            public void onFailure(Call<List<TaskItemDTO>> call, Throwable t) {
-                t.printStackTrace();
-            }
-        });
+                    @Override
+                    public void onFailure(Call<List<TaskItemDTO>> call, Throwable t) {
+                        t.printStackTrace();
+                    }
+                });
     }
 
     private void onClickEditTask(TaskItemDTO item) {
